@@ -2,9 +2,6 @@
 **/Release/
 **/x64
 
-*.vcxproj
-*.vcxproj.filters
-*.user
 *.opensdf
 *.sdf
 *.ipch
@@ -12,5 +9,5 @@
 *.ini
 
 .vs/
-./OpenGl/output/
-./OpenGl/.png
+**/output/
+*.png
