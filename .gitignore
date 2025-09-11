@@ -1,0 +1,16 @@
+**/Debug/
+**/Release/
+**/x64
+
+*.vcxproj
+*.vcxproj.filters
+*.user
+*.opensdf
+*.sdf
+*.ipch
+*.exe
+*.ini
+
+.vs/
+./OpenGl/output/
+./OpenGl/.png
