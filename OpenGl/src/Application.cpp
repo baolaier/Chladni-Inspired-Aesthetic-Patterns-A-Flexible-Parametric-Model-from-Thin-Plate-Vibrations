@@ -12,103 +12,82 @@
 #include "VertexBufferLayout.h"
 #include "Shader.h"
 #include "Texture.h"
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image_write.h"
+#include "./stb_image/stb_image.h"
+#include "./stb_image/stb_image_write.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
-#include "Tests/TestClearColor.h"
+#include "Parameters.h"
 #include <chrono>
 
 void FlipImageVertically(unsigned char* pixels, int width, int height) {
-    int rowSize = width * 4; // 每行的字节数（4 字节 / 像素）
-
-    // 临时缓冲区用于交换每行
+    int rowSize = width * 4;
     unsigned char* rowBuffer = new unsigned char[rowSize];
-
-    // 反转图像的每一行
     for (int y = 0; y < height / 2; ++y) {
-        // 计算当前行和对应的反转行的地址
         unsigned char* topRow = pixels + y * rowSize;
         unsigned char* bottomRow = pixels + (height - 1 - y) * rowSize;
-
-        // 交换这两行
-        memcpy(rowBuffer, topRow, rowSize);        // 将当前行复制到临时缓冲区
-        memcpy(topRow, bottomRow, rowSize);       // 将反转行复制到当前行
-        memcpy(bottomRow, rowBuffer, rowSize);    // 将临时缓冲区的行复制到反转行
+        memcpy(rowBuffer, topRow, rowSize);
+        memcpy(topRow, bottomRow, rowSize);
+        memcpy(bottomRow, rowBuffer, rowSize);
     }
-
-    delete[] rowBuffer; // 释放缓冲区内存
+    delete[] rowBuffer;
 }
-using namespace std;
-namespace fs = filesystem;
-int main() {
+int main(int argc, char* argv[]) {
     auto beforeTime = std::chrono::steady_clock::now();
-    float tmp = (sqrt(5.0f) + 1.0f) / 2.0f;
- 
-    //float length = 8.75f * 0.254f;
-    const char* save_path = "output.png";
-	string save_path_result = "output/output2.png";
-    vector<string> textureNames ;
-    string folderPath = "Texture";
-    for (const auto& entry : filesystem::directory_iterator(folderPath))
-    {
-        // 只处理以 .png 结尾的文件
-        if (entry.path().extension() == ".png")
-        {
-            textureNames.push_back(entry.path().string());  // 存储完整路径
+    bool openui = true;
+    Parameters params;
+    if (argc != 1) {
+        if (argc == 5 && std::string(argv[1]) == "--cli") {
+            params.type = std::stoi(argv[2]);
+            params.color_path = argv[3];
+            params.file_dir = argv[4];
+            openui = false;
+        }
+        else {
+            std::cerr << "Error: invalid arguments." << std::endl;
+            std::cerr << "Usage: " << argv[0] << " [--cli type texture_path save_dir]" << std::endl;
+            return -1;
         }
     }
-    const char* color_path = "Texture/5#5000.png";
-    //dimention in meters
-    float L = tmp*2.0f;
-    float M = L; 
-    const int WIDTH = 1000;
-    const int HEIGHT =1000;
-    float k = 15.0f;
-    float t = 11.187000f;
-    int n_range = 16;
-    int m_range = 16;
-    float a0 = 0.434f;
-    float a2 = 0.434f;
-    float s0 =100.0f;
-    float I = 4.0f;
-    int type = 0;
-    int currentTextureIndex = 0;
-    int isError = 0;
-    vector<string> typeList = {"Is","Bs","Ds a0=a2",
-        "Rs  A=0 C=0 N!=M","Is + Is","Bs + Bs","Rs + Ds  A=0 C=0",
-        "Bs + Is A!=C","Is+Ds A=C N=M","Bs + Bs + Ds A=C"};
-    vector<string> errorList = {"No Error","Error"};
-
-    color_path = textureNames[currentTextureIndex].c_str();
+    
+    const char* save_path = "output.png";
+	std::string save_path_result = "output/output2.png";
+    std::vector<std::string> textureNames ;
+    std::string folderPath = "Texture";
+    for (const auto& entry : std::filesystem::directory_iterator(folderPath))
+    {
+        if (entry.path().extension() == ".png")
+        {
+            textureNames.push_back(entry.path().string());
+        }
+    }
+    std::vector<std::string> typeList = {"Is","Bs","Ds",
+        "Rs","Is + Is","Bs + Bs","Rs + Ds",
+        "Bs + Is","Is + Ds","Bs + Bs + Ds"};
+    std::vector<std::string> errorList = {"Without pert","With pert"};
     
     if (!glfwInit()) {
 
-        cerr << "Failed to initialize GLFW" << endl;
+        std::cerr << "Failed to initialize GLFW" << std::endl;
         return -1;
     }
-    // 创建窗口
-    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Pixel Drawing with Color Condition", NULL, NULL);
+    if(!openui)glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+    GLFWwindow* window = glfwCreateWindow(params.WIDTH, params.HEIGHT, "Pixel Drawing with Color Condition", NULL, NULL);
     if (!window) {
-        cerr << "Failed to create GLFW window" << endl;
+        std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
         return -1;
     }
 
     glfwMakeContextCurrent(window);
-    // 初始化 GLEW
     if (glewInit() != GLEW_OK) {
-        cerr << "Failed to initialize GLEW" << endl;
+        std::cerr << "Failed to initialize GLEW" << std::endl;
         return -1;
     }
     {
         float positions[] = {
-            // positions   // texture
                -1.0,-1.0, 0.0f, 0.0f,//0
                 1.0,-1.0, 1.0f, 0.0f,//1
                 1.0, 1.0, 1.0f, 1.0f,//2
@@ -118,8 +97,7 @@ int main() {
         unsigned int indices[] = {
             0,1,2,
             0,3,2,
-        };//设置索引缓冲区
-        //顶点缓冲区
+        };
         
         VertexArray vao;
         VertexBuffer vb(positions, sizeof(positions));
@@ -132,27 +110,23 @@ int main() {
         shader.Bind();
         Shader secondshader("res/shader/Second.shader");
 
-        // 设置帧缓冲和纹理
         unsigned int framebuffer;
         glGenFramebuffers(1, &framebuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
-        Texture textureColorBuffer("", 0, WIDTH, HEIGHT);
+        Texture textureColorBuffer("", 0, params.WIDTH, params.HEIGHT);
 
         secondshader.Bind();
         secondshader.SetUniform1i("renderedTexture", 0);
-        //加载颜色纹理，已绑定
 
-        Texture texture(color_path,1);
+        Texture texture(params.color_path,1);
         texture.Bind();
 
         shader.Bind();
         shader.SetUniform1i("texture1", 1);
 
-        //创建投影矩阵
-        glm::mat4 proj = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);//正交矩阵
-        glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -1.0f));//视图矩阵
-
+        glm::mat4 proj = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
+        glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -1.0f));
 
         shader.Unbind();
         vao.Unbind();
@@ -163,142 +137,232 @@ int main() {
         ImGui_ImplGlfw_InitForOpenGL(window, true);
         ImGui::StyleColorsDark();
 
-        // 需要指定GLSL版本, 也就是shader中的version
         const char* glsl_version = "#version 330";
         ImGui_ImplOpenGL3_Init(glsl_version);
-
-        bool show_demo_window = true;
+       
         bool show_another_window = false;
-        ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-        glm::vec3 translationA(0.0f, 0.0f, 0.0f);
-        test::TestClearColor test;
         bool flag = false;
         bool isDraw = false;
+        bool a0a2lock = false;
+        bool a0a2zero = false;
+        bool NMlock = false;
         
-        while (!glfwWindowShouldClose(window)) {
 
-
+        auto drawPicture = [&]() {
             if (!flag) {
-                //从这里开始把图像渲染到纹理，相当于一个渲染场景
                 textureColorBuffer.FrameBind();
                 glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
                 vao.Bind();
                 shader.Bind();
-                shader.SetUniform1f("k", k);
-                shader.SetUniform1f("t", t);
-                shader.SetUniform1f("L", L);
-                shader.SetUniform1i("n_range", n_range);
-                shader.SetUniform1i("m_range", m_range);
-                shader.SetUniform1f("a0", a0);
-                shader.SetUniform1f("a2", a2);
-                shader.SetUniform1f("s0", s0);
-                shader.SetUniform1f("I", I);
-                shader.SetUniform1i("type", type);
-                shader.SetUniform1i("isError", isError);
+                shader.SetUniform1f("k", params.k);
+                shader.SetUniform1f("t", params.t);
+                shader.SetUniform1f("L", params.L);
+                shader.SetUniform1i("n_range", params.n_range);
+                shader.SetUniform1i("m_range", params.m_range);
+                shader.SetUniform1f("a0", params.a0);
+                shader.SetUniform1f("a2", params.a2);
+                shader.SetUniform1f("s0", params.s0);
+                shader.SetUniform1f("I", params.I);
+                shader.SetUniform1i("type", params.type);
+                shader.SetUniform1i("isError", params.isError);
 
                 renderer.Draw(vao, ib, shader);
                 auto afterTime = std::chrono::steady_clock::now();
 
-                std::cout << "总耗时:" << std::endl;
-                //秒
+                std::cout << "All time: ";
                 double duration_second = std::chrono::duration<double>(afterTime - beforeTime).count();
-                std::cout << duration_second << "秒" << std::endl;
+                std::cout << duration_second << "s" << std::endl;
 
-                // 读取帧缓冲的内容并保存为图片
-                unsigned char* pixels = new unsigned char[WIDTH * HEIGHT * 4];
-                glReadPixels(0, 0, WIDTH, HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
-                stbi_write_png(save_path, WIDTH, HEIGHT, 4, pixels, WIDTH * 4);
+                unsigned char* pixels = new unsigned char[params.WIDTH * params.HEIGHT * 4];
+                glReadPixels(0, 0, params.WIDTH, params.HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+                stbi_write_png(save_path, params.WIDTH, params.HEIGHT, 4, pixels, params.WIDTH * 4);
                 if (isDraw) {
-					save_path_result = "output/T=" + to_string(t) + " K=" + to_string(k) + " L=" + to_string(L) + " I=" + to_string(I) +
-                        " N="+to_string(n_range)+" M="+to_string(m_range)+" a0="+to_string(a0)+" a2="+to_string(a2)+"   "+errorList[isError] + ".png";
-                    FlipImageVertically(pixels, WIDTH, HEIGHT);
-                    stbi_write_png(save_path_result.c_str(), WIDTH, HEIGHT, 4, pixels, WIDTH * 4);
+                    save_path_result = params.file_dir + "/t=" + std::to_string(params.t) + " eta=" + std::to_string(params.k) + " L=" + std::to_string(params.L) + " I=" + std::to_string(params.I) +
+                        " P=" + std::to_string(params.n_range) + " Q=" + std::to_string(params.m_range) + " A0=" + std::to_string(params.a0) + " A2=" + std::to_string(params.a2) + "   " + errorList[params.isError] + ".png";
+                    FlipImageVertically(pixels, params.WIDTH, params.HEIGHT);
+                    stbi_write_png(save_path_result.c_str(), params.WIDTH, params.HEIGHT, 4, pixels, params.WIDTH * 4);
                     isDraw = false;
+                    std::cout << "Successful save picture" << std::endl;
                 }
                 delete[] pixels;
-                // 恢复默认帧缓冲
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
                 flag = true;
-                
             }
+        };
+        while (!openui && std::cin >> params.t >> params.k >> params.L >> params.I >> params.n_range >> params.m_range >> params.a0 >> params.a2) {
+            isDraw = true;
+            drawPicture();
+            flag = false;
+            isDraw = true;
+        }
 
-            // 绘制纹理
+        while (openui&&!glfwWindowShouldClose(window)) {
+            drawPicture();
             renderer.Clear();
-            test.OnUpdate(0.0f);
-            test.OnRender();
-            ImGui_ImplOpenGL3_NewFrame();//渲染ImGUI帧缓冲
+            ImGui_ImplOpenGL3_NewFrame();
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
             secondshader.Bind();
             {
                 
-                glm::mat4 model = glm::translate(glm::mat4(1.0f), translationA);//模型矩阵
-                glm::mat4 mvp = proj * view * model;//模型视图矩阵
+                glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+                glm::mat4 mvp = proj * view * model;
                 secondshader.SetUniformMat4f("u_MVP", mvp);
                 renderer.Draw(vao, ib, secondshader);
             }
-
             {
             
-                ImGui::Begin("Picture");                 
-
-                test.OnImGuiRender();
-                ImGui::SliderFloat3("TranslationA", &translationA.x, -1.0f, 1.0f);
-
-                if (ImGui::SliderFloat("value K", &k, 0.5f, 25.0f)) {
+                ImGui::Begin("Chladni Aesthetic Patterns");
+                if (ImGui::SliderFloat("Value t", &params.t, 0.0f, 50.0f)) {
                     flag = false;
                 }
 
-                if (ImGui::SliderFloat("value T", &t, 0.0f, 50.0f)) {
+                if (ImGui::SliderFloat("Value eta", &params.k, 0.5f, 25.0f)) {
+                    flag = false;
+                }           
+
+                if (ImGui::SliderFloat("Value L", &params.L, 0.0f, 5.0f)) {
                     flag = false;
                 }
 
-                if (ImGui::SliderInt("value N", &n_range, 1, 50)) {
+                if (ImGui::SliderFloat("Value I", &params.I, 0.0f, 350.0f)) {
                     flag = false;
                 }
 
-                if (ImGui::SliderInt("value M", &m_range, 1, 50)) {
+                if (ImGui::SliderInt("Value P", &params.n_range, 1, 50)) {
+                    if (NMlock) {
+                        params.m_range = params.n_range;
+                    }
                     flag = false;
                 }
 
-                if (ImGui::SliderFloat("value a0", &a0, 0.0f, 5.0f)) {
+                if (ImGui::SliderInt("Value Q", &params.m_range, 1, 50)) {
+                    if (NMlock) {
+                        params.n_range = params.m_range;
+                    }
                     flag = false;
                 }
 
-                if (ImGui::SliderFloat("value a2", &a2, 0.0f, 5.0f)) {
+                if (ImGui::SliderFloat("Value A0", &params.a0, 0.0f, 5.0f)) {
+                    if (a0a2lock) {
+                        params.a2 = params.a0;
+                    }
+                    if (a0a2zero) {
+                        params.a0 = 0;
+                    }
                     flag = false;
                 }
 
-                if (ImGui::SliderFloat("value s0", &s0, 10.0f, 10000.0f)) {
-                    flag = false;
-                }
-                
-                if (ImGui::SliderFloat("value L", &L, 0.0f, 5.0f)) {
-                    flag = false;
-                }
-
-                if (ImGui::SliderFloat("value I", &I, 0.0f, 350.0f)) {
-                    flag = false;
-                }
-
-                if (ImGui::SliderInt(("type:" + typeList[type]).c_str(), &type, 0, 9)) {
+                if (ImGui::SliderFloat("Value A2", &params.a2, 0.0f, 5.0f)) {
+                    if (a0a2lock) {
+                        params.a0 = params.a2;
+                    }
+                    if (a0a2zero) {
+                        params.a2 = 0;
+                    }
                     flag = false;
                 }
 
-                if (ImGui::SliderInt("current texture", &currentTextureIndex, 0, textureNames.size() - 1)) {
+                if (ImGui::SliderFloat("Slice height", &params.s0, 10.0f, 1000.0f)) {
                     flag = false;
-                    texture.Updata(textureNames[currentTextureIndex]);
-                    texture.Bind();
-                    shader.Bind();
-                    shader.SetUniform1i("texture1", 1);
                 }
-                
-                if (ImGui::Button(errorList[isError].c_str())) {
+
+                if (ImGui::BeginCombo(
+                    "type",
+                    typeList[params.type].c_str())) {
+
+                    for (int i = 0; i < typeList.size(); ++i) {
+                        bool selected = (params.type == i);
+
+                        if (ImGui::Selectable(
+                            typeList[i].c_str(),
+                            selected)) {
+
+                            switch (i) {
+                                case(2): {
+                                    a0a2lock = true;
+                                    NMlock = true;
+                                    params.a0 = params.a2;
+                                    params.n_range = params.m_range;
+                                    break;
+                                }
+                                case(3): {
+                                    a0a2zero = true;
+                                    params.a0 = 0;
+                                    params.a2 = 0;
+                                    break;
+                                }
+                                case(6): {
+                                    a0a2zero = true;
+                                    NMlock = true;
+                                    params.a0 = 0;
+                                    params.a2 = 0;
+                                    params.n_range = params.m_range;
+                                    break;
+                                }
+                                case(8): {
+                                    a0a2lock = true;
+                                    NMlock = true;
+                                    params.a0 = params.a2;
+                                    params.n_range = params.m_range;
+                                    break;
+                                }
+                                case(9): {
+                                    a0a2lock = true;
+                                    NMlock = true;
+                                    params.a0 = params.a2;
+                                    params.n_range = params.m_range;
+                                    break;
+                                }
+                                      
+                                default: {
+                                    a0a2lock = false;
+                                    a0a2zero = false;
+                                    NMlock = false;
+                                    break;
+                                }
+                            }
+
+                            params.type = i;
+                            flag = false;
+                        }
+
+                        if (selected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+
+                    ImGui::EndCombo();
+                }
+
+                if (ImGui::BeginCombo("current texture",
+                    textureNames[params.currentTextureIndex].c_str())) {
+
+                    for (int i = 0; i < textureNames.size(); ++i) {
+                        bool selected = (params.currentTextureIndex == i);
+
+                        if (ImGui::Selectable(textureNames[i].c_str(), selected)) {
+                            params.currentTextureIndex = i;
+
+                            flag = false;
+                            texture.Updata(textureNames[i]);
+                            texture.Bind();
+                            shader.Bind();
+                            shader.SetUniform1i("texture1", 1);
+                        }
+
+                        if (selected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+
+                    ImGui::EndCombo();
+                }
+
+                if (ImGui::Button(errorList[params.isError].c_str())) {
                     flag = false;
-                    isError = 1-isError;
+                    params.isError = 1- params.isError;
                 }
-                if (ImGui::Button("Save")) {
+                if (ImGui::Button("Save result")) {
                     flag = false;
                     isDraw = true;
                 }

@@ -3,10 +3,10 @@
 
 IndexBuffer::IndexBuffer(const void* data, unsigned int size)
 {
-    glGenBuffers(1, &m_RendererID);//生成缓冲区的名称
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RendererID);//绑定缓冲区
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);// 创建并初始化缓冲区对象的数据存储
-    m_Count = size / sizeof(unsigned int);//计算索引数量
+    glGenBuffers(1, &m_RendererID);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RendererID);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
+    m_Count = size / sizeof(unsigned int);
 }
 IndexBuffer::~IndexBuffer()
 {
@@ -15,7 +15,7 @@ IndexBuffer::~IndexBuffer()
 
 void IndexBuffer::Bind()const
 {
-    GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RendererID));//绑定缓冲区
+    GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RendererID));
 }
 void IndexBuffer::unbind()const
 {

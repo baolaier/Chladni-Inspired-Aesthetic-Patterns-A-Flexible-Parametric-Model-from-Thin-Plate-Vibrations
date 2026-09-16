@@ -5,8 +5,8 @@
 
 struct VertexBufferElement {
 	unsigned int type;
-	unsigned int count;//数量
-	unsigned int normalized;//是否归一化
+	unsigned int count;
+	unsigned int normalized;
 
 	static unsigned int GetSizeOfType(unsigned int type) {
 		switch (type) {
@@ -14,7 +14,7 @@ struct VertexBufferElement {
 			case GL_UNSIGNED_INT:	return sizeof(unsigned int);
 			case GL_UNSIGNED_BYTE:	return sizeof(unsigned char);
 		}
-		ASSERT(false);//未知类型
+		ASSERT(false);
 		return 0;
 	}
 
@@ -31,7 +31,7 @@ public:
 
 	template<typename T>
 	void Push(unsigned int count) {
-		static_assert(sizeof(T));//检查条件
+		static_assert(sizeof(T));
 	}
 
 	template<>

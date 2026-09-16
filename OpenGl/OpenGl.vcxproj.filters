@@ -42,12 +42,6 @@
     <ClCompile Include="src\Texture.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="src\Tests\TestClearColor.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Tests\Tests.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="src\vendor\imgui\imgui.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -69,6 +63,12 @@
     <ClCompile Include="src\vendor\imgui\imgui_widgets.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="src\vendor\stb_image\stb_image.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vendor\stb_image\stb_image_write.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\VertexBuffer.h">
@@ -78,12 +78,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="src\IndexBuffer.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\stb_image.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\stb_image_write.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="src\VertexArray.h">
@@ -965,12 +959,6 @@
     <ClInclude Include="src\Texture.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\Tests\TestClearColor.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Tests\Tests.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="src\vendor\imgui\imconfig.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -996,6 +984,15 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="src\vendor\imgui\imstb_truetype.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Parameters.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vendor\stb_image\stb_image_write.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vendor\stb_image\stb_image.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
