@@ -44,6 +44,7 @@ Run in the terminal
 --cli type texture_path save_dir
 ```
 **type**: Input 0-9, 
+
 ```
 "Is","Bs","Ds","Rs","Is + Is","Bs + Bs","Rs + Ds","Bs + Is","Is + Ds","Bs + Bs + Ds"
 ```
@@ -53,9 +54,11 @@ Run in the terminal
 
 A Python script `.OpenGl\script\run_exe.py` is provided to enable batch processing.
 
-## Thanks
+## **Acknowledgment**
 
+If you use this code in your research, please consider citing the following paper:
 
+Qianlaier Bao, Yingpeng Li, Yao Jin, Huaxiong Zhang, Lili He, and Chao Song, “Chladni-Inspired Aesthetic Patterns: A Flexible Parametric Model from Thin-Plate Vibrations,” IEEE Transactions on Visualization and Computer Graphics, 2026. https://doi.org/10.1109/TVCG.2026.3735451
 
 
 
